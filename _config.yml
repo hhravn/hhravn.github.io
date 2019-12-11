@@ -1,1 +1,7 @@
 include: [".well-known"]
+
+title: hhravn.GitHub.io
+description: hhravn.dk
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-minimal
