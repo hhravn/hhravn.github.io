@@ -33,4 +33,166 @@ VVVVVOOVOOVV::::ii*:~                   ~~:~~:~*~:*:*:~~~~`  ````````````````
 VVVVVVVVVVOVVVVVVVi:       ```         `::~~::~:*~:::*::::~```````````~`~~````` 
 <pre><hr />
 Hej.... jeg er sej.... jeg elsker pizza... men det er ikke min livret...
+<script>
+(() => {
+  const art = document.querySelector('pre').firstChild;
+  if (!art || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const RAMP = ' `~:*iVO';
+  const SPEED = 26;      // columns per second
+  const BAND = 2.6;      // ring thickness in columns
+  const LIFE = 3;        // seconds
+  const MAX_RIPPLES = 12;
+
+  const rest = art.nodeValue;
+  const cells = [];
+  let x = 0, y = 0;
+  for (const ch of rest) {
+    if (ch === '\n') { x = 0; y++; continue; }
+    cells.push({ x, y, level: RAMP.indexOf(ch) });
+    x++;
+  }
+
+  const ripples = [];
+  let running = false;
+  let lastTrail = { t: 0, x: -99, y: -99 };
+
+  function toCell(event) {
+    const range = document.createRange();
+    range.setStart(art, 0); range.setEnd(art, 1);
+    const first = range.getBoundingClientRect();
+    const secondLine = rest.indexOf('\n') + 1;
+    range.setStart(art, secondLine); range.setEnd(art, secondLine + 1);
+    const lineHeight = range.getBoundingClientRect().top - first.top;
+    return { x: (event.clientX - first.left) / first.width, y: (event.clientY - first.top) / lineHeight };
+  }
+
+  function spawn(cell, strength) {
+    ripples.push({ x: cell.x, y: cell.y, born: performance.now(), strength });
+    if (ripples.length > MAX_RIPPLES) ripples.shift();
+    if (!running) { running = true; requestAnimationFrame(frame); }
+  }
+
+  function frame(now) {
+    while (ripples.length && (now - ripples[0].born) / 1000 > LIFE) ripples.shift();
+    if (!ripples.length) {
+      art.nodeValue = rest;
+      running = false;
+      return;
+    }
+
+    const out = rest.split('');
+    let index = 0;
+    for (const cell of cells) {
+      while (out[index] === '\n') index++;
+      let offset = 0;
+      for (const ripple of ripples) {
+        const age = (now - ripple.born) / 1000;
+        const dx = cell.x - ripple.x, dy = 2 * (cell.y - ripple.y);
+        const band = Math.sqrt(dx * dx + dy * dy) - SPEED * age;
+        if (band > 3 * BAND || band < -3 * BAND) continue;
+        const fade = (1 - age / LIFE) ** 2 / (1 + SPEED * age * 0.04);
+        offset += ripple.strength * fade * Math.exp(-band * band / (2 * BAND * BAND)) * Math.cos(band * 1.3);
+      }
+      const level = Math.max(0, Math.min(RAMP.length - 1, Math.round(cell.level + offset)));
+      out[index++] = RAMP[level];
+    }
+    art.nodeValue = out.join('');
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('pointerdown', event => spawn(toCell(event), 3.5));
+  addEventListener('pointermove', event => {
+    const cell = toCell(event);
+    const moved = Math.hypot(cell.x - lastTrail.x, 2 * (cell.y - lastTrail.y));
+    if (event.timeStamp - lastTrail.t < 70 || moved < 2) return;
+    lastTrail = { t: event.timeStamp, x: cell.x, y: cell.y };
+    spawn(cell, 1.3);
+  });
+})();
+
+(() => {
+  const sentence = document.querySelector('hr').nextSibling;
+  if (!sentence) return;
+
+  const PRONOUNS = ['jeg', 'du', 'han', 'hun', 'man'];
+  const COPULAS = ['er', 'var', 'bliver', 'blev'];
+  const GROUPS = [
+    ['Hej', 'Hejsa', 'Halløj', 'Davs', 'Goddag', 'Ohøj'],
+    PRONOUNS,
+    COPULAS,
+    ['sej', 'glad', 'træt', 'sulten', 'klog', 'doven', 'skør'],
+    ['elsker', 'hader', 'savner', 'spiser', 'bager', 'frygter', 'drømmer om'],
+    ['pizza', 'pasta', 'lakrids', 'sushi', 'kage', 'rugbrød', 'frikadeller'],
+    ['men', 'og', 'for'],
+    ['ikke', 'aldrig', 'altid', 'nok', 'måske'],
+    ['min', 'din', 'hans', 'hendes', 'vores', 'deres'],
+    ['livret', 'yndlingsret', 'morgenmad', 'kæreste', 'religion', 'ven'],
+  ];
+  const IDLE_BEFORE_DRIFT = 20000;
+  const DRIFT_STEP = 600;
+  const LETTERS = 'abcdefghijklmnopqrstuvwxyzæøå';
+  const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const parts = sentence.nodeValue.split(/([A-Za-zæøåÆØÅ]+)/).map(text => {
+    const group = GROUPS.find(candidates => candidates[0] === text);
+    return group ? { shown: text, group, original: text, current: text, scramble: 0 } : { shown: text };
+  });
+  const words = parts.filter(part => part.group);
+  const render = () => { sentence.nodeValue = parts.map(part => part.shown).join(''); };
+
+  const range = document.createRange();
+  addEventListener('click', event => {
+    let start = 0;
+    for (const part of parts) {
+      const end = start + part.shown.length;
+      if (part.group) {
+        range.setStart(sentence, start);
+        range.setEnd(sentence, end);
+        const box = range.getBoundingClientRect();
+        if (event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom) {
+          swap(part, pickOther(part));
+          scheduleDrift();
+          return;
+        }
+      }
+      start = end;
+    }
+  });
+
+  function pickOther(word) {
+    const others = word.group.filter(candidate => candidate !== word.current);
+    return others[Math.floor(Math.random() * others.length)];
+  }
+
+  function swap(word, target) {
+    clearInterval(word.scramble);
+    word.current = target;
+    if (instant) { word.shown = target; render(); return; }
+    let steps = 6;
+    word.scramble = setInterval(() => {
+      if (--steps <= 0) {
+        clearInterval(word.scramble);
+        word.shown = target;
+      } else {
+        word.shown = Array.from(target, ch => ch === ' ' ? ' ' : LETTERS[Math.floor(Math.random() * LETTERS.length)]).join('');
+      }
+      render();
+    }, 45);
+  }
+
+  let driftTimer = 0;
+  function scheduleDrift() {
+    clearTimeout(driftTimer);
+    driftTimer = setTimeout(drift, IDLE_BEFORE_DRIFT);
+  }
+
+  function drift() {
+    const changed = words.filter(word => word.current !== word.original);
+    if (!changed.length) return;
+    swap(changed[0], changed[0].original);
+    driftTimer = setTimeout(drift, DRIFT_STEP);
+  }
+})();
+</script>
 </html>
