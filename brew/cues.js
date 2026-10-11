@@ -35,12 +35,13 @@ export function playCue(kind, muted) {
   if (!muted && audioContext) {
     if (kind === 'tick') tone(880, 0, 0.08);
     if (kind === 'go') tone(1320, 0, 0.35);
+    if (kind === 'ping') tone(1568, 0, 0.6);
     if (kind === 'remove') {
       tone(1320, 0, 0.2);
       tone(990, 0.25, 0.4);
     }
   }
-  if (kind !== 'tick' && 'vibrate' in navigator) navigator.vibrate(kind === 'go' ? 200 : [120, 80, 120]);
+  if ((kind === 'go' || kind === 'remove') && 'vibrate' in navigator) navigator.vibrate(kind === 'go' ? 200 : [120, 80, 120]);
 }
 
 export async function keepAwake() {

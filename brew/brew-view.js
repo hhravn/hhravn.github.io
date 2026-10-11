@@ -72,6 +72,12 @@ export function cueEvents(schedule) {
     for (const leadSec of TICK_LEAD_SEC) events.push({ atMs: (moment.atSec - leadSec) * 1000, kind: 'tick' });
     events.push({ atMs: moment.atSec * 1000, kind: moment.kind });
   }
+  schedule.pours.forEach((pour, index) => {
+    if (pour.durationSec <= 0) return;
+    const pingAtMs = Math.round((pour.startSec + pour.durationSec) * 1000);
+    const nextAtMs = Math.round((schedule.pours[index + 1]?.startSec ?? schedule.removeSec) * 1000);
+    if (pingAtMs < nextAtMs) events.push({ atMs: pingAtMs, kind: 'ping' });
+  });
   return events.sort((a, b) => a.atMs - b.atMs);
 }
 

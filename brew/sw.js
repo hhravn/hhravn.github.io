@@ -1,4 +1,4 @@
-const CACHE = 'brew-v2';
+const CACHE = 'brew-v3';
 const FILES = [
   './', './index.html', './styles.css', './app.js', './brew-screen.js', './recipe.js', './brew-view.js',
   './cues.js', './storage.js', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png',

@@ -147,12 +147,13 @@ test('elapsed seconds are floored', () => {
 
 test('cueEvents ticks three times before every pour and before removing', () => {
   const events = cueEvents(schedule);
-  assert.equal(events.length, 24);
-  assert.deepEqual(events.slice(0, 5), [
+  assert.equal(events.length, 29);
+  assert.deepEqual(events.slice(0, 6), [
     { atMs: -3000, kind: 'tick' },
     { atMs: -2000, kind: 'tick' },
     { atMs: -1000, kind: 'tick' },
     { atMs: 0, kind: 'go' },
+    { atMs: 9600, kind: 'ping' },
     { atMs: 42000, kind: 'tick' },
   ]);
   assert.deepEqual(events.at(-1), { atMs: 210000, kind: 'remove' });
@@ -162,15 +163,31 @@ test('cueEvents ticks three times before every pour and before removing', () => 
   assert.deepEqual(times, [...times].sort((a, b) => a - b));
 });
 
+test('cueEvents pings when each pour pace window ends', () => {
+  const pings = cueEvents(schedule).filter(event => event.kind === 'ping').map(event => event.atMs);
+  assert.deepEqual(pings, [9600, 54600, 99600, 144600, 174600]);
+});
+
+test('cueEvents does not ping with pacing off', () => {
+  assert.equal(cueEvents(unpaced).filter(event => event.kind === 'ping').length, 0);
+});
+
+test('cueEvents skips the ping of a pour that overruns its slot', () => {
+  const slow = buildSchedule({ ...CLASSIC, doseGrams: 40, pourRateGramsPerSec: 3 });
+  const pings = cueEvents(slow).filter(event => event.kind === 'ping').map(event => event.atMs);
+  assert.deepEqual(pings, [40000, 85000, 130000, 205000]);
+});
+
 test('dueCues fires events crossed since the previous frame', () => {
   const events = cueEvents(schedule);
   assert.deepEqual(dueCues(events, -3001, -2990), [{ atMs: -3000, kind: 'tick' }]);
   assert.deepEqual(dueCues(events, -10, 5), [{ atMs: 0, kind: 'go' }]);
   assert.deepEqual(dueCues(events, 5, 10), []);
+  assert.deepEqual(dueCues(events, 9500, 9700), [{ atMs: 9600, kind: 'ping' }]);
 });
 
 test('dueCues skips stale events after a long gap', () => {
   const events = cueEvents(schedule);
-  assert.deepEqual(dueCues(events, 5, 100000), []);
+  assert.deepEqual(dueCues(events, 5, 120000), []);
   assert.deepEqual(dueCues(events, 5, 90500), [{ atMs: 90000, kind: 'go' }]);
 });
