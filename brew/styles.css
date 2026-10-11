@@ -34,6 +34,7 @@ html, body {
   color: var(--text);
   font: 16px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  font-variant-numeric: tabular-nums;
 }
 
 main {
@@ -75,8 +76,8 @@ button:disabled { opacity: 0.4; cursor: default; }
   gap: 12px;
 }
 
-.recipe-name { font-size: 1.2rem; font-weight: 700; margin: 0; }
-.recipe-summary { color: var(--muted); margin: 0; }
+.recipe-name { font-size: 1.2rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.recipe-summary { color: var(--muted); margin: 0; overflow-wrap: anywhere; }
 .recipe-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .recipe-actions .primary { flex: 1 1 100%; min-height: 56px; font-size: 1.1rem; }
 
@@ -107,7 +108,7 @@ textarea { min-height: 72px; resize: vertical; }
 .preview th, .preview td { text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--line); }
 .preview th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
 
-.warning { color: var(--warn); margin: 8px 0; }
+.warning { color: var(--warn); margin: 8px 0; overflow-wrap: anywhere; }
 
 .form-actions { display: flex; gap: 8px; margin-top: 24px; }
 .form-actions button { flex: 1; }

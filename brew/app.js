@@ -7,6 +7,7 @@ const app = document.getElementById('app');
 const notice = document.getElementById('notice');
 let recipes = loadRecipes();
 let draft = null;
+let noticeTimer;
 
 const allRecipes = () => [CLASSIC, ...recipes];
 const findRecipe = id => allRecipes().find(recipe => recipe.id === id);
@@ -21,7 +22,8 @@ const summary = recipe =>
 function showNotice(text) {
   notice.textContent = text;
   notice.hidden = false;
-  setTimeout(() => { notice.hidden = true; }, 4000);
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => { notice.hidden = true; }, 4000);
 }
 
 function persist() {
