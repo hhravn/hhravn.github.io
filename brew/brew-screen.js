@@ -70,14 +70,14 @@ export function leaveBrew() {
 }
 
 const currentBrewMs = () => {
-  const pausedNowMs = session.state === 'paused' ? performance.now() - session.pausedAtMs : 0;
-  return (performance.now() - session.anchorMs - session.pausedTotalMs - pausedNowMs) * speed - LEAD_IN_MS;
+  const pausedNowMs = session.state === 'paused' ? Date.now() - session.pausedAtMs : 0;
+  return (Date.now() - session.anchorMs - session.pausedTotalMs - pausedNowMs) * speed - LEAD_IN_MS;
 };
 
 function start() {
   unlockAudio();
   keepAwake();
-  session.anchorMs = performance.now();
+  session.anchorMs = Date.now();
   session.pausedTotalMs = 0;
   session.previousBrewMs = -LEAD_IN_MS - 1;
   session.state = 'running';
@@ -98,13 +98,15 @@ function loop() {
 
 function pause() {
   session.state = 'paused';
-  session.pausedAtMs = performance.now();
+  session.pausedAtMs = Date.now();
   cancelAnimationFrame(session.frame);
   renderControls();
 }
 
 function resume() {
-  session.pausedTotalMs += performance.now() - session.pausedAtMs;
+  unlockAudio();
+  keepAwake();
+  session.pausedTotalMs += Date.now() - session.pausedAtMs;
   session.state = 'running';
   renderControls();
   session.frame = requestAnimationFrame(loop);
@@ -140,7 +142,10 @@ function onClick(event) {
 }
 
 function onVisibilityChange() {
-  if (session?.state === 'running' && document.visibilityState === 'visible') keepAwake();
+  if (session?.state === 'running' && document.visibilityState === 'visible') {
+    unlockAudio();
+    keepAwake();
+  }
 }
 
 function renderMute() {

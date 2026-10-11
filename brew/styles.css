@@ -100,8 +100,8 @@ textarea { min-height: 72px; resize: vertical; }
 .stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 8px; }
 .stepper output { text-align: center; font-size: 1.4rem; font-weight: 700; }
 
-.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
-.segmented button { padding: 0 4px; font-size: 0.9rem; }
+.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.segmented button { padding: 0 2px; font-size: clamp(0.75rem, 3.6vw, 0.9rem); }
 .segmented button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
 .preview { width: 100%; border-collapse: collapse; }
@@ -130,8 +130,8 @@ textarea { min-height: 72px; resize: vertical; }
 .brew { display: grid; gap: 4px; text-align: center; min-height: calc(100dvh - 40px); align-content: start; }
 
 .brew-header { display: flex; align-items: center; gap: 12px; justify-content: space-between; color: var(--muted); font-size: 0.95rem; }
-.brew-header .brew-meta { text-align: left; }
-.brew-mute { min-height: 40px; padding: 0 12px; font-size: 0.85rem; }
+.brew-header .brew-meta { text-align: left; font-size: clamp(0.75rem, 3.6vw, 0.95rem); }
+.brew-mute { min-height: 40px; padding: 0 12px; font-size: 0.85rem; white-space: nowrap; }
 
 .brew-name { margin: 8px 0 0; color: var(--muted); }
 .brew-step { margin: 16px 0 0; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -149,8 +149,8 @@ textarea { min-height: 72px; resize: vertical; }
 .brew-countdown { margin: 0 0 12px; font-size: clamp(3rem, 16vw, 6.5rem); font-weight: 700; line-height: 1.05; }
 
 .brew-strip { list-style: none; display: flex; justify-content: space-between; gap: 4px; padding: 0; margin: 20px 0; }
-.brew-strip li { flex: 1; display: grid; gap: 2px; padding: 8px 0; border-radius: 10px; color: var(--muted); }
-.brew-strip b { font-size: 1.1rem; color: var(--text); }
+.brew-strip li { flex: 1; min-width: 0; display: grid; gap: 2px; padding: 8px 0; border-radius: 10px; color: var(--muted); }
+.brew-strip b { font-size: clamp(0.8rem, 4.2vw, 1.1rem); color: var(--text); }
 .brew-strip span { font-size: 0.8rem; }
 .brew-strip li.done b { color: var(--done); }
 .brew-strip li.done b::before { content: '✓'; margin-right: 2px; }

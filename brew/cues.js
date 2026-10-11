@@ -5,7 +5,14 @@ let wantAwake = false;
 
 export function unlockAudio() {
   if (!('AudioContext' in window)) return;
-  audioContext ??= new AudioContext();
+  if (!audioContext) {
+    try {
+      audioContext = new AudioContext();
+    } catch (error) {
+      console.warn('could not create audio context', error);
+      return;
+    }
+  }
   if (audioContext.state !== 'running') {
     audioContext.resume().catch(error => console.warn('could not resume audio', error));
   }
