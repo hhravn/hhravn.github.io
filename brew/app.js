@@ -200,3 +200,7 @@ app.addEventListener('input', event => {
 
 window.addEventListener('hashchange', route);
 route();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(error => console.warn('service worker registration failed', error));
+}
