@@ -140,6 +140,8 @@ textarea { min-height: 72px; resize: vertical; }
 .brew-grams { font-size: clamp(5rem, 28vw, 11rem); }
 .brew-unit { font-size: clamp(2rem, 9vw, 3.5rem); margin-left: 0.15em; color: var(--muted); }
 .brew-delta { margin: 4px 0 8px; font-size: 1.3rem; color: var(--muted); }
+.brew-target, .brew-delta { transition: opacity 0.3s; }
+.brew-target.is-preview, .brew-delta.is-preview { opacity: 0.45; }
 
 .brew-pace, .brew-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 0 8px; }
 .brew-pace { height: 6px; margin-bottom: 16px; }

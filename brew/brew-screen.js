@@ -42,7 +42,7 @@ export function showBrew(container, recipe) {
     rendered: {},
     elements: {
       elapsed: element('.brew-elapsed'), mute: element('.brew-mute'), step: element('.brew-step'),
-      grams: element('.brew-grams'), delta: element('.brew-delta'), paceFill: element('.brew-pace-fill'),
+      target: element('.brew-target'), grams: element('.brew-grams'), delta: element('.brew-delta'), paceFill: element('.brew-pace-fill'),
       pace: element('.brew-pace'), countdownLabel: element('.brew-countdown-label'), countdown: element('.brew-countdown'),
       barFill: element('.brew-bar-fill'), strip: element('.brew-strip'), controls: element('.brew-controls'),
     },
@@ -170,6 +170,12 @@ function setText(key, element, text) {
   element.textContent = text;
 }
 
+function setFlag(key, targets, className, on) {
+  if (session.rendered[key] === on) return;
+  session.rendered[key] = on;
+  for (const target of targets) target.classList.toggle(className, on);
+}
+
 function setScale(key, element, fraction) {
   const clamped = Math.min(1, Math.max(0, fraction));
   if (session.rendered[key] === clamped) return;
@@ -181,13 +187,15 @@ function render(view) {
   const { elements } = session;
   const isDone = view.phase === 'done';
   setText('elapsed', elements.elapsed, formatClock(view.elapsedSec));
-  setText('step', elements.step, STEP_LABELS[view.phase] ?? `Pour ${view.pourIndex + 1} of ${view.pourCount}`);
+  const pourLabel = view.previewing ? `Next: pour ${view.pourIndex + 2} of ${view.pourCount}` : `Pour ${view.pourIndex + 1} of ${view.pourCount}`;
+  setText('step', elements.step, STEP_LABELS[view.phase] ?? pourLabel);
   setText('grams', elements.grams, String(view.displayGrams));
   setText('delta', elements.delta, isDone ? `total ${formatClock(view.elapsedSec)}` : `(+${view.deltaGrams} g)`);
   setText('countdownLabel', elements.countdownLabel, view.countdownLabel);
   setText('countdown', elements.countdown, isDone ? '' : formatClock(view.countdownSec));
   setScale('pace', elements.paceFill, view.phase === 'pouring' ? view.pourProgress : 0);
   setScale('bar', elements.barFill, view.intervalProgress);
+  setFlag('preview', [elements.target, elements.delta], 'is-preview', view.previewing);
 
   const stripKey = `${view.phase}:${view.pourIndex}`;
   if (session.rendered.strip === stripKey) return;

@@ -2,6 +2,7 @@ export const LEAD_IN_MS = 3000;
 
 const TICK_LEAD_SEC = [3, 2, 1];
 const STALE_CUE_MS = 1000;
+const PREVIEW_DELAY_MS = 3000;
 
 export const formatClock = seconds => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
@@ -17,6 +18,7 @@ export function brewView(schedule, brewMs) {
       displayGrams: first.targetGrams, targetGrams: first.targetGrams, deltaGrams: first.deltaGrams,
       countdownSec: Math.ceil(-brewMs / 1000), countdownLabel: 'starting in',
       pourProgress: 0, intervalProgress: Math.max(0, (brewMs + LEAD_IN_MS) / LEAD_IN_MS), elapsedSec: 0,
+      previewing: false,
     };
   }
 
@@ -27,6 +29,7 @@ export function brewView(schedule, brewMs) {
       displayGrams: last.targetGrams, targetGrams: last.targetGrams, deltaGrams: last.deltaGrams,
       countdownSec: 0, countdownLabel: '',
       pourProgress: 1, intervalProgress: 1, elapsedSec: removeSec,
+      previewing: false,
     };
   }
 
@@ -42,13 +45,15 @@ export function brewView(schedule, brewMs) {
   const sincePourMs = brewMs - startMs;
   const isPouring = sincePourMs < durationMs;
   const pourProgress = isPouring ? sincePourMs / durationMs : 1;
-  const previousGrams = pour.targetGrams - pour.deltaGrams;
+  const previewing = !isLast && brewMs >= startMs + durationMs + PREVIEW_DELAY_MS;
+  const shown = previewing ? pours[pourIndex + 1] : pour;
 
   return {
     phase: isPouring ? 'pouring' : isLast ? 'draining' : 'waiting',
     pourIndex, pourCount,
-    displayGrams: isPouring ? Math.floor(previousGrams + pour.deltaGrams * pourProgress) : pour.targetGrams,
-    targetGrams: pour.targetGrams, deltaGrams: pour.deltaGrams,
+    displayGrams: shown.targetGrams,
+    targetGrams: pour.targetGrams, deltaGrams: shown.deltaGrams,
+    previewing,
     countdownSec: Math.ceil((nextMs - brewMs) / 1000),
     countdownLabel: isLast ? 'remove dripper in' : 'next pour in',
     pourProgress,

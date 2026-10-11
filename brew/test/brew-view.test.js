@@ -24,34 +24,60 @@ test('lead-in counts down to the first pour', () => {
   assert.equal(start.pourIndex, 0);
   assert.equal(start.pourCount, 5);
   assert.equal(start.intervalProgress, 0);
+  assert.equal(start.previewing, false);
   assert.equal(start.elapsedSec, 0);
   assert.equal(brewView(schedule, -2500).countdownSec, 3);
   assert.equal(brewView(schedule, -1).countdownSec, 1);
 });
 
-test('first pour starts at zero and paces up to the target', () => {
+test('during a pour the hero shows the target and the pace bar fills', () => {
   const atStart = brewView(schedule, 0);
   assert.equal(atStart.phase, 'pouring');
   assert.equal(atStart.pourIndex, 0);
-  assert.equal(atStart.displayGrams, 0);
+  assert.equal(atStart.displayGrams, 48);
+  assert.equal(atStart.previewing, false);
   assert.equal(atStart.countdownSec, 45);
   assert.equal(atStart.countdownLabel, 'next pour in');
 
   const halfway = brewView(schedule, 4800);
-  assert.equal(halfway.phase, 'pouring');
-  assert.equal(halfway.displayGrams, 24);
+  assert.equal(halfway.displayGrams, 48);
   assert.equal(halfway.pourProgress, 0.5);
 
   const finished = brewView(schedule, 9600);
   assert.equal(finished.phase, 'waiting');
   assert.equal(finished.displayGrams, 48);
   assert.equal(finished.pourProgress, 1);
+  assert.equal(finished.previewing, false);
 });
 
-test('paced weight is floored to whole grams', () => {
-  const view = brewView(schedule, 45000 + 1000);
-  assert.equal(view.pourIndex, 1);
-  assert.equal(view.displayGrams, 53);
+test('three seconds after the pace bar fills the hero previews the next target', () => {
+  const before = brewView(schedule, 12599);
+  assert.equal(before.previewing, false);
+  assert.equal(before.displayGrams, 48);
+
+  const preview = brewView(schedule, 12600);
+  assert.equal(preview.phase, 'waiting');
+  assert.equal(preview.previewing, true);
+  assert.equal(preview.pourIndex, 0);
+  assert.equal(preview.targetGrams, 48);
+  assert.equal(preview.displayGrams, 96);
+  assert.equal(preview.deltaGrams, 48);
+  assert.equal(preview.countdownSec, 33);
+
+  assert.equal(brewView(schedule, 44999).previewing, true);
+  const next = brewView(schedule, 45000);
+  assert.equal(next.previewing, false);
+  assert.equal(next.pourIndex, 1);
+  assert.equal(next.displayGrams, 96);
+});
+
+test('preview carries the next pour delta when pours differ', () => {
+  const sweet = buildSchedule({ ...CLASSIC, doseGrams: 20, balance: 'sweet' });
+  const preview = brewView(sweet, 13000);
+  assert.equal(preview.previewing, true);
+  assert.equal(preview.displayGrams, 120);
+  assert.equal(preview.deltaGrams, 70);
+  assert.equal(brewView(sweet, 12999).previewing, false);
 });
 
 test('the instant of a pour belongs to the new pour', () => {
@@ -63,7 +89,7 @@ test('the instant of a pour belongs to the new pour', () => {
   const at = brewView(schedule, 45000);
   assert.equal(at.phase, 'pouring');
   assert.equal(at.pourIndex, 1);
-  assert.equal(at.displayGrams, 48);
+  assert.equal(at.displayGrams, 96);
   assert.equal(at.targetGrams, 96);
   assert.equal(at.deltaGrams, 48);
 });
@@ -84,6 +110,7 @@ test('last pour counts down to removing the dripper, then drains', () => {
   assert.equal(draining.displayGrams, 240);
   assert.equal(draining.countdownSec, 35);
   assert.equal(draining.countdownLabel, 'remove dripper in');
+  assert.equal(draining.previewing, false);
 });
 
 test('done at the remove time', () => {
@@ -93,14 +120,25 @@ test('done at the remove time', () => {
   assert.equal(done.pourIndex, 4);
   assert.equal(done.countdownSec, 0);
   assert.equal(done.elapsedSec, 210);
+  assert.equal(done.previewing, false);
   assert.equal(brewView(schedule, 500000).phase, 'done');
 });
 
-test('pacing off jumps straight to the target', () => {
-  const view = brewView(unpaced, 0);
-  assert.equal(view.phase, 'waiting');
-  assert.equal(view.displayGrams, 48);
-  assert.equal(view.pourProgress, 1);
+test('pacing off previews three seconds after the pour starts', () => {
+  const atStart = brewView(unpaced, 0);
+  assert.equal(atStart.phase, 'waiting');
+  assert.equal(atStart.displayGrams, 48);
+  assert.equal(atStart.pourProgress, 1);
+  assert.equal(atStart.previewing, false);
+  assert.equal(brewView(unpaced, 2999).previewing, false);
+  assert.equal(brewView(unpaced, 3000).displayGrams, 96);
+});
+
+test('the last pour never previews', () => {
+  const draining = brewView(schedule, 200000);
+  assert.equal(draining.phase, 'draining');
+  assert.equal(draining.previewing, false);
+  assert.equal(draining.displayGrams, 240);
 });
 
 test('elapsed seconds are floored', () => {
