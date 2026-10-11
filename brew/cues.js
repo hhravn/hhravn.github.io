@@ -1,10 +1,12 @@
 let audioContext = null;
 let wakeLock = null;
+let wakeLockPending = false;
+let wantAwake = false;
 
 export function unlockAudio() {
   if (!('AudioContext' in window)) return;
   audioContext ??= new AudioContext();
-  if (audioContext.state === 'suspended') {
+  if (audioContext.state !== 'running') {
     audioContext.resume().catch(error => console.warn('could not resume audio', error));
   }
 }
@@ -35,16 +37,26 @@ export function playCue(kind, muted) {
 }
 
 export async function keepAwake() {
-  if (!('wakeLock' in navigator) || wakeLock) return;
+  wantAwake = true;
+  if (!('wakeLock' in navigator) || wakeLock || wakeLockPending) return;
+  wakeLockPending = true;
   try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => { wakeLock = null; });
+    const lock = await navigator.wakeLock.request('screen');
+    if (!wantAwake) {
+      await lock.release();
+      return;
+    }
+    wakeLock = lock;
+    lock.addEventListener('release', () => { if (wakeLock === lock) wakeLock = null; });
   } catch (error) {
     console.warn('wake lock request rejected', error);
+  } finally {
+    wakeLockPending = false;
   }
 }
 
 export async function releaseAwake() {
+  wantAwake = false;
   const lock = wakeLock;
   wakeLock = null;
   if (lock) await lock.release();
