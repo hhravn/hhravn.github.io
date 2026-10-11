@@ -126,3 +126,37 @@ textarea { min-height: 72px; resize: vertical; }
   color: #1a120b;
   font-weight: 600;
 }
+
+.brew { display: grid; gap: 4px; text-align: center; min-height: calc(100dvh - 40px); align-content: start; }
+
+.brew-header { display: flex; align-items: center; gap: 12px; justify-content: space-between; color: var(--muted); font-size: 0.95rem; }
+.brew-header .brew-meta { text-align: left; }
+.brew-mute { min-height: 40px; padding: 0 12px; font-size: 0.85rem; }
+
+.brew-name { margin: 8px 0 0; color: var(--muted); }
+.brew-step { margin: 16px 0 0; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+
+.brew-target { margin: 0; line-height: 1; font-weight: 800; }
+.brew-grams { font-size: clamp(5rem, 28vw, 11rem); }
+.brew-unit { font-size: clamp(2rem, 9vw, 3.5rem); margin-left: 0.15em; color: var(--muted); }
+.brew-delta { margin: 4px 0 8px; font-size: 1.3rem; color: var(--muted); }
+
+.brew-pace, .brew-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 0 8px; }
+.brew-pace { height: 6px; margin-bottom: 16px; }
+.brew-pace-fill, .brew-bar-fill { height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+
+.brew-countdown-label { margin: 8px 0 0; color: var(--muted); font-size: 1.1rem; }
+.brew-countdown { margin: 0 0 12px; font-size: clamp(3rem, 16vw, 6.5rem); font-weight: 700; line-height: 1.05; }
+
+.brew-strip { list-style: none; display: flex; justify-content: space-between; gap: 4px; padding: 0; margin: 20px 0; }
+.brew-strip li { flex: 1; display: grid; gap: 2px; padding: 8px 0; border-radius: 10px; color: var(--muted); }
+.brew-strip b { font-size: 1.1rem; color: var(--text); }
+.brew-strip span { font-size: 0.8rem; }
+.brew-strip li.done b { color: var(--done); }
+.brew-strip li.done b::before { content: '✓'; margin-right: 2px; }
+.brew-strip li.current { background: var(--accent); }
+.brew-strip li.current b, .brew-strip li.current span { color: var(--accent-text); }
+
+.brew-controls { display: flex; gap: 8px; margin-top: 8px; }
+.brew-controls button { flex: 1; min-height: 56px; font-size: 1.1rem; }
+.brew-controls .brew-start { flex: 2; min-height: 72px; font-size: 1.4rem; }
